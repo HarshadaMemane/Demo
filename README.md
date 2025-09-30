@@ -75,4 +75,11 @@ pipeline {
         }
 
     }
+    post {
+       always {
+           bat 'del current-env.txt 2>nul'
+           echo "Demo cleaned up!"
+       }
+   }
+}
  
