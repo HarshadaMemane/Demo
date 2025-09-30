@@ -3,59 +3,44 @@ JenkinIntegrationTest
 pipeline {
     agent any
     stages {
-        stage('Deploy Stable') {
+        stage('Start v1 Servers') {
             steps {
-                echo "=== CANARY: Stable v1 ==="
+                echo "=== ROLLING UPDATE: v1 ==="
                 bat '''
-                echo Hello from STABLE v1 > stable.txt
-                type stable.txt
+                echo Hello from SERVER1 v1 > s1.txt
+                echo Hello from SERVER2 v1 > s2.txt
+                echo Hello from SERVER3 v1 > s3.txt
+                type s1.txt & type s2.txt & type s3.txt
                 '''
             }
         }
  
-        stage('Deploy Canary') {
+        stage('Update Server 1') {
             steps {
-                input message: "Deploy CANARY v2 (10% traffic)?"
-                bat '''
-echo Hello from CANARY v2 > canary.txt
-                echo Simulating traffic split (4 stable, 1 canary):
-                type stable.txt
-                type stable.txt
-                type stable.txt
-                type stable.txt
-                type canary.txt
-                '''
+                input message: "Update SERVER1 to v2?"
+                bat 'echo Hello from SERVER1 v2 > s1.txt & type s1.txt'
+}
+        }
+ 
+        stage('Update Server 2') {
+            steps {
+                input message: "Update SERVER2 to v2?"
+                bat 'echo Hello from SERVER2 v2 > s2.txt & type s2.txt'
             }
         }
  
-        stage('Increase Canary') {
+        stage('Update Server 3') {
             steps {
-                input message: "Increase CANARY to 50%?"
-                bat '''
-                echo Simulating 50-50 traffic:
-                type stable.txt
-                type canary.txt
-                type stable.txt
-                type canary.txt
-                '''
-            }
-        }
- 
-        stage('Promote Canary') {
-            steps {
-                input message: "Promote CANARY to 100% (make stable)?"
-                bat '''
-                copy canary.txt stable.txt >nul
-                type stable.txt
-                del canary.txt >nul
-                '''
+                input message: "Update SERVER3 to v2?"
+                bat 'echo Hello from SERVER3 v2 > s3.txt & type s3.txt'
             }
         }
     }
     post {
         always {
-            bat 'del stable.txt 2>nul'
+            bat 'del s1.txt s2.txt s3.txt 2>nul'
             echo "Demo cleaned up!"
         }
     }
 }
+
