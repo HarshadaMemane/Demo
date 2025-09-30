@@ -1,85 +1,61 @@
 # Demo
 JenkinIntegrationTest
 pipeline {
-
     agent any
-
     stages {
-
-        stage('Deploy BLUE') {
-
+        stage('Deploy Stable') {
             steps {
-
-                echo "=== BLUE-GREEN: Deploy BLUE ==="
-
+                echo "=== CANARY: Stable v1 ==="
                 bat '''
-
-                echo Hello from BLUE v1 > current-env.txt
-
-                type current-env.txt
-
+                echo Hello from STABLE v1 > stable.txt
+                type stable.txt
                 '''
-
             }
-
         }
  
-        stage('Deploy GREEN') {
-
+        stage('Deploy Canary') {
             steps {
-
-                input message: "Ready to deploy GREEN environment?"
-
+                input message: "Deploy CANARY v2 (10% traffic)?"
                 bat '''
-
-                echo Hello from GREEN v2 > green-env.txt
-
-                type green-env.txt
-
+echo Hello from CANARY v2 > canary.txt
+                echo Simulating traffic split (4 stable, 1 canary):
+                type stable.txt
+                type stable.txt
+                type stable.txt
+                type stable.txt
+                type canary.txt
                 '''
-
             }
-
         }
  
-        stage('Switch Traffic') {
-
+        stage('Increase Canary') {
             steps {
-
-                input message: "Switch traffic from BLUE -> GREEN?"
-
+                input message: "Increase CANARY to 50%?"
                 bat '''
-
-                copy green-env.txt current-env.txt >nul
-
-                echo Current traffic now points to:
-
-                type current-env.txt
-
+                echo Simulating 50-50 traffic:
+                type stable.txt
+                type canary.txt
+                type stable.txt
+                type canary.txt
                 '''
-
             }
-
         }
  
-        stage('Cleanup BLUE') {
-
+        stage('Promote Canary') {
             steps {
-
-                input message: "Cleanup BLUE environment?"
-
-                bat 'del green-env.txt >nul'
-
+                input message: "Promote CANARY to 100% (make stable)?"
+                bat '''
+                copy canary.txt stable.txt >nul
+                type stable.txt
+                del canary.txt >nul
+                '''
             }
-
         }
-
     }
     post {
-       always {
-           bat 'del current-env.txt 2>nul'
-           echo "Demo cleaned up!"
-       }
-   }
+        always {
+            bat 'del stable.txt 2>nul'
+            echo "Demo cleaned up!"
+        }
+    }
 }
- 
